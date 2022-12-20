@@ -14,20 +14,21 @@ ENV DEBIAN_FRONTEND noninteractive
 ENV OPENBLAS_CORETYPE AARCH64
 
 # Install Python newer than 3.6
+# 3.9 is latest we can go due to collections.MutableMapping deprecation
 RUN apt-get update -y || true \
  && apt-get install -y ca-certificates software-properties-common && update-ca-certificates
 RUN add-apt-repository ppa:deadsnakes/ppa \
  && apt-get update -y
 RUN apt-get install -y \
-    python3.11 \
-    python3.11-dev \
-    python3.11-distutils \
+    python3.9 \
+    python3.9-dev \
+    python3.9-distutils \
     python3-pip
-RUN python3.11 -m pip install pip wheel setuptools --upgrade
+RUN python3.9 -m pip install pip wheel setuptools --upgrade
 # I understand this is bad to do, but the ZEDSDK installs a bunch of
 # packages into `python3`, so setting this to our desired version reduces
 # duplicate installs
-RUN rm /usr/bin/python3 && ln -s /usr/bin/python3.11 /usr/bin/python3
+RUN rm /usr/bin/python3 && ln -s /usr/bin/python3.9 /usr/bin/python3
 
 # This environment variable is needed to use the streaming features on Jetson inside a container
 ENV LOGNAME root
@@ -39,7 +40,7 @@ RUN apt-get update -y && apt-get install --no-install-recommends lsb-release wge
  && chmod +x ZED_SDK_Linux_JP.run ; ./ZED_SDK_Linux_JP.run silent runtime_only \
  && rm -rf /usr/local/zed/resources/* \
  && rm -rf ZED_SDK_Linux_JP.run \
- && apt-get remove --purge build-essential python3.11-dev -y && apt-get autoremove -y \
+ && apt-get remove --purge build-essential python3.9-dev -y && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/*
 
 # This symbolic link is needed to use the streaming features on Jetson inside a container
