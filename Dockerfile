@@ -25,7 +25,7 @@ RUN apt-get install -y \
     python3-pip \
     python${PYTHON_VERSION} \
     python${PYTHON_VERSION}-dev \
-    python${PYTHON_VERSION}-distutils \
+    python${PYTHON_VERSION}-distutils
 RUN python${PYTHON_VERSION} -m pip install pip wheel setuptools --upgrade
 # I understand this is bad to do, but the ZEDSDK installs a bunch of
 # packages into `python3`, so setting this to our desired version reduces
