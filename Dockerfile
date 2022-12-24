@@ -1,3 +1,13 @@
+FROM docker.io/library/python:3.11-alpine AS poetry-exporter
+
+WORKDIR /work
+
+COPY pyproject.toml pyproject.toml
+COPY poetry.lock poetry.lock
+
+RUN python -m pip install poetry \
+ && poetry export -o requirements.txt
+
 # adapted from https://github.com/stereolabs/zed-docker/blob/master/3.X/l4t/py-runtime/Dockerfile
 # https://hub.docker.com/r/stereolabs/zed
 
@@ -53,7 +63,7 @@ RUN ln -sf /usr/lib/aarch64-linux-gnu/tegra/libv4l2.so.0 /usr/lib/aarch64-linux-
 
 WORKDIR /app
 
-COPY requirements.txt requirements.txt
+COPY --from=poetry-exporter /work/requirements.txt requirements.txt
 
 RUN python3 -m pip install -r requirements.txt
 
