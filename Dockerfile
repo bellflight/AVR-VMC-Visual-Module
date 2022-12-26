@@ -1,4 +1,4 @@
-FROM docker.io/library/python:3.11 AS poetry-exporter
+FROM docker.io/library/python:3.10 AS poetry-exporter
 
 WORKDIR /work
 
@@ -12,15 +12,17 @@ RUN python -m pip install poetry \
 # https://hub.docker.com/r/stereolabs/zed
 
 # https://ngc.nvidia.com/catalog/containers/nvidia:l4t-base
-FROM nvcr.io/nvidia/l4t-base:r35.1.0
+FROM nvcr.io/nvidia/l4t-base:r32.6.1
 
-ENV PYTHON_VERSION=3.11
-
-ENV L4T_MAJOR_VERSION=35
-ENV L4T_MINOR_VERSION=1
-ENV L4T_PATCH_VERSION=0
+# I have had issues with the camera not connecting on newer JetPack versions
+ENV L4T_MAJOR_VERSION=32
+ENV L4T_MINOR_VERSION=6
+ENV L4T_PATCH_VERSION=1
 ENV ZED_SDK_MAJOR=3
 ENV ZED_SDK_MINOR=7
+
+# Latest supported version by the ZED SDK
+ENV PYTHON_VERSION=3.10
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -48,14 +50,14 @@ RUN rm /usr/bin/python3 && ln -s /usr/bin/python${PYTHON_VERSION} /usr/bin/pytho
 # This environment variable is needed to use the streaming features on Jetson inside a container
 ENV LOGNAME root
 
-# This also installs the Python Zed package
-RUN apt-get update -y && apt-get install --no-install-recommends lsb-release wget less udev sudo apt-transport-https -y \
- && echo "# R${L4T_MAJOR_VERSION} (release), REVISION: ${L4T_MINOR_VERSION}" > /etc/nv_tegra_release ; \
- wget -q -O ZED_SDK_Linux_JP.run https://download.stereolabs.com/zedsdk/${ZED_SDK_MAJOR}.${ZED_SDK_MINOR}/l4t${L4T_MAJOR_VERSION}.${L4T_MINOR_VERSION}/jetsons \
- && chmod +x ZED_SDK_Linux_JP.run ; ./ZED_SDK_Linux_JP.run silent runtime_only \
+RUN apt-get install --no-install-recommends lsb-release wget less udev sudo apt-transport-https zstd -y \
+ && echo "# R${L4T_MAJOR_VERSION} (release), REVISION: ${L4T_MINOR_VERSION}.${L4T_PATCH_VERSION}" > /etc/nv_tegra_release ; \
+ wget -q https://download.stereolabs.com/zedsdk/${ZED_SDK_MAJOR}.${ZED_SDK_MINOR}/l4t${L4T_MAJOR_VERSION}.${L4T_MINOR_VERSION}/jetsons -O ZED_SDK_Linux.run \
+ && chmod +x ZED_SDK_Linux.run ; ./ZED_SDK_Linux.run silent runtime_only \
  && rm -rf /usr/local/zed/resources/* \
- && rm -rf ZED_SDK_Linux_JP.run \
- && apt-get remove --purge build-essential python${PYTHON_VERSION}-dev -y && apt-get autoremove -y \
+ && rm -rf ZED_SDK_Linux.run \
+ && apt-get remove --purge build-essential python${PYTHON_VERSION}-dev -y \
+ && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/*
 
 # This symbolic link is needed to use the streaming features on Jetson inside a container
@@ -67,6 +69,6 @@ COPY --from=poetry-exporter /work/requirements.txt requirements.txt
 
 RUN python3 -m pip install -r requirements.txt
 
-COPY . .
+COPY src .
 
 CMD ["python3", "vio.py"]
