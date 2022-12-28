@@ -277,13 +277,13 @@ testing-integration = ["build[virtualenv]", "filelock (>=3.4.0)", "jaraco.envs (
 
 [[package]]
 name = "transforms3d"
-version = "0.3.1"
+version = "0.4.1"
 description = "Functions for 3D coordinate transformations"
 category = "main"
 optional = false
-python-versions = "*"
+python-versions = ">=3.6"
 files = [
-    {file = "transforms3d-0.3.1.tar.gz", hash = "sha256:404c7797c78aa461cb8043081901fc5517cef342d5ff56becd74a7967ba88d78"},
+    {file = "transforms3d-0.4.1.tar.gz", hash = "sha256:31c755266a0b0a222488b8d039f6f325cf486c52728c03e307ce047b2fad1179"},
 ]
 
 [[package]]
@@ -325,4 +325,4 @@ dev = ["black (>=19.3b0)", "pytest (>=4.6.2)"]
 [metadata]
 lock-version = "2.0"
     python-versions = ">=3.9,<3.12"
-content-hash = "1d79e4d75bb6ec4681def6a0427587ca39e0b3f363702f7584785b0c67634c14"
+content-hash = "e14584371597a1094a4d2f3f5ee1b00b0dc03d14f80c1c691159a45331fb2075"
