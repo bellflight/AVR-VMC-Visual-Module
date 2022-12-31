@@ -14,6 +14,7 @@ from bell.avr.mqtt.payloads import (
 from bell.avr.utils.decorators import run_forever, try_except
 from loguru import logger
 
+import config
 from vio_library import CameraCoordinateTransformation
 from zed_library import ZEDCamera
 
@@ -22,10 +23,8 @@ class VIOModule(MQTTModule):
     def __init__(self):
         super().__init__()
 
-        # settings
         self.init_sync = False
         self.continuous_sync = True
-        self.CAM_UPDATE_FREQ = 10
 
         # connected libraries
         self.camera = ZEDCamera()
@@ -92,7 +91,7 @@ class VIOModule(MQTTModule):
         )
         self.send_message("avr/vio/confidence", confidence_update)
 
-    @run_forever(frequency=10)
+    @run_forever(frequency=config.CAM_UPDATE_FREQ)
     @try_except(reraise=False)
     def process_camera_data(self) -> None:
         data = self.camera.get_pipe_data()

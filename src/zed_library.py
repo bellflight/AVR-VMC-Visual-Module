@@ -22,7 +22,7 @@ class ZedPipeData(TypedDict):
 
 # Largely adapted from this
 # https://github.com/stereolabs/zed-examples/blob/master/tutorials/tutorial%204%20-%20positional%20tracking/python/positional_tracking.py
-class ZEDCamera(object):
+class ZEDCamera:
     """
     ZED Tracking Camera interface.
     Manages pulling data off of the camera for use by the transforms to

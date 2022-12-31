@@ -13,6 +13,7 @@
     bell-avr-libraries = { extras = ["mqtt"], version = "^0.1.12" }
     transforms3d       = "0.4.1"
     numpy              = "1.24.1"
+    nptyping           = "^2.4.1"
 
 [tool.poetry.group.dev.dependencies]
     pre-commit  = "^2.21.0"
