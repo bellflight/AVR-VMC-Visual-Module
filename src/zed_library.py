@@ -15,7 +15,7 @@ class ZedPipeDataTranslation(TypedDict):
 
 class ZedPipeData(TypedDict):
     rotation: Tuple[float, float, float, float]  # quaternion
-    translation: ZedPipeDataTranslation
+    translation: Tuple[float, float, float]
     velocity: Tuple[float, float, float]
     tracker_confidence: float
 
@@ -124,7 +124,7 @@ class ZEDCamera:
         rotation = o.get()
 
         # assemble return value
-        translation = ZedPipeDataTranslation(x=tx, y=ty, z=tz)
+        translation = (tx, ty, tz)
 
         return ZedPipeData(
             rotation=rotation,

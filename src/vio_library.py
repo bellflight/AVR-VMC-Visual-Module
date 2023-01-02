@@ -51,7 +51,7 @@ class CameraCoordinateTransformation:
         self.tm["H_aeroBody_TRACKCAMBody"] = H_aeroBody_TRACKCAMBody
         self.tm["H_TRACKCAMBody_aeroBody"] = np.linalg.inv(H_aeroBody_TRACKCAMBody)
 
-        pos = copy.deepcopy(config.CAM_POS)
+        pos = list(config.CAM_POS)
         pos[2] = -1 * config.CAM_GROUND_HEIGHT
 
         H_aeroRef_TRACKCAMRef = t3d.affines.compose(
