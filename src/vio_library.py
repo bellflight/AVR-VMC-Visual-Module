@@ -1,4 +1,3 @@
-import copy
 import math
 from typing import Dict, Tuple, TypedDict
 
@@ -6,7 +5,7 @@ import numpy as np
 import transforms3d as t3d
 from bell.avr.utils.decorators import try_except
 from loguru import logger
-from nptyping import Float, Int, NDArray, Shape
+from nptyping import Float, NDArray, Shape
 
 import config
 
@@ -104,11 +103,11 @@ class CameraCoordinateTransformation:
         """
         quaternion = data["rotation"]
 
-        position = [
+        position = (
             data["translation"][0] * 100,
             data["translation"][1] * 100,
             data["translation"][2] * 100,
-        ]  # cm
+        )  # cm
 
         velocity = np.transpose(
             [

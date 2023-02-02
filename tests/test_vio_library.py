@@ -4,13 +4,11 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 import pytest
-from pytest_mock.plugin import MockerFixture
 
 if TYPE_CHECKING:
     from src.vio_library import (
         CameraCoordinateTransformation,
         CameraFrameData,
-        ResyncPosRef,
     )
 
 
