@@ -10,6 +10,7 @@ from loguru import logger
 
 from models import CameraFrameData
 
+
 # Largely adapted from this
 # https://github.com/stereolabs/zed-examples/blob/master/tutorials/tutorial%204%20-%20positional%20tracking/python/positional_tracking.py
 class ZEDCamera:
