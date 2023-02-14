@@ -14,6 +14,7 @@ from bell.avr.mqtt.payloads import (
 from bell.avr.utils.decorators import run_forever, try_except
 from loguru import logger
 
+import config
 from vio_library import CameraCoordinateTransformation
 from zed_library import ZEDCamera
 
@@ -22,10 +23,8 @@ class VIOModule(MQTTModule):
     def __init__(self):
         super().__init__()
 
-        # settings
+        # record if sync has happend once
         self.init_sync = False
-        self.continuous_sync = True
-        self.CAM_UPDATE_FREQ = 10
 
         # connected libraries
         self.camera = ZEDCamera()
@@ -37,11 +36,8 @@ class VIOModule(MQTTModule):
     def handle_resync(self, payload: AvrVioResyncPayload) -> None:
         # whenever new data is published to the ZEDCamera resync topic, we need to compute a new correction
         # to compensate for sensor drift over time.
-        if not self.init_sync or self.continuous_sync:
-            heading_ref = payload["heading"]
-            self.coord_trans.sync(
-                heading_ref, {"n": payload["n"], "e": payload["e"], "d": payload["d"]}
-            )
+        if not self.init_sync or config.CONTINUOUS_SYNC:
+            self.coord_trans.sync(payload)
             self.init_sync = True
 
     @try_except(reraise=False)
@@ -53,7 +49,7 @@ class VIOModule(MQTTModule):
         tracker_confidence: float,
     ) -> None:
         if np.isnan(ned_pos).any():
-            raise ValueError("ZEDCamera has NaNs for position")
+            raise ValueError("Camera has NaNs for position")
 
         # send position update
         n = float(ned_pos[0])
@@ -92,7 +88,7 @@ class VIOModule(MQTTModule):
         )
         self.send_message("avr/vio/confidence", confidence_update)
 
-    @run_forever(frequency=10)
+    @run_forever(frequency=config.CAM_UPDATE_FREQ)
     @try_except(reraise=False)
     def process_camera_data(self) -> None:
         data = self.camera.get_pipe_data()
@@ -109,8 +105,8 @@ class VIOModule(MQTTModule):
         ) = self.coord_trans.transform_trackcamera_to_global_ned(data)
 
         self.publish_updates(
-            ned_pos,
-            ned_vel,
+            tuple(ned_pos),
+            tuple(ned_vel),
             rpy,
             data["tracker_confidence"],
         )
