@@ -10,6 +10,7 @@ from pytest_mock.plugin import MockerFixture
 
 if TYPE_CHECKING:
     from src.vio import VIOModule
+    from src.zed_library import ZEDCamera
     from src.vio_library import CameraCoordinateTransformation
 
 
@@ -55,3 +56,28 @@ def camera_coordinate_transformation(config: None) -> CameraCoordinateTransforma
     from src.vio_library import CameraCoordinateTransformation
 
     return CameraCoordinateTransformation()
+
+
+@pytest.fixture
+def zed_camera(mocker: MockerFixture) -> ZEDCamera:
+    # mock the pyzed package
+    sys.modules["pyzed"] = mocker.MagicMock()
+    sys.modules["pyzed.sl"] = mocker.MagicMock()
+
+    # create object
+    from src.zed_library import ZEDCamera
+
+    zed_camera = ZEDCamera()
+
+    # patch the constants
+    mocker.patch("src.zed_library.sl.ERROR_CODE.SUCCESS", True)
+
+    # patch the zed object
+    mocker.patch.object(zed_camera, "zed")
+    mocker.patch.object(zed_camera.zed, "open", return_value=True)
+    mocker.patch.object(zed_camera.zed, "grab", return_value=True)
+    mocker.patch.object(zed_camera.zed, "enable_positional_tracking", return_value=True)
+
+    zed_camera.setup()
+
+    return zed_camera
