@@ -1,5 +1,5 @@
 import math
-from typing import Dict, Tuple, TypedDict
+from typing import Dict, Tuple
 
 import numpy as np
 import transforms3d as t3d
@@ -8,18 +8,7 @@ from loguru import logger
 from nptyping import Float, NDArray, Shape
 
 import config
-
-
-class ResyncPosRef(TypedDict):
-    n: float
-    e: float
-    d: float
-
-
-class CameraFrameData(TypedDict):
-    rotation: Tuple[float, float, float, float]
-    translation: Tuple[float, float, float]
-    velocity: Tuple[float, float, float]
+from models import ResyncData, CameraFrameData
 
 
 class CameraCoordinateTransformation:
@@ -77,8 +66,8 @@ class CameraCoordinateTransformation:
     def transform_trackcamera_to_global_ned(
         self, data: CameraFrameData
     ) -> Tuple[
-        Tuple[float, float, float],
-        Tuple[float, float, float],
+        NDArray[Shape["3"], Float],
+        NDArray[Shape["3"], Float],
         Tuple[float, float, float],
     ]:
         """
@@ -142,12 +131,12 @@ class CameraCoordinateTransformation:
 
         H_vel = self.tm["H_aeroRefSync_aeroRef"].dot(self.tm["H_aeroRef_TRACKCAMRef"])
 
-        vel = tuple(np.transpose(H_vel.dot(velocity)))
+        vel = np.transpose(H_vel.dot(velocity))
 
         return T, vel, eul
 
     @try_except()
-    def sync(self, heading_ref: float, pos_ref: ResyncPosRef) -> None:
+    def sync(self, resync_data: ResyncData) -> None:
         """
         Computes offsets between TRACKCAMera ref and "global" frames, to align coord. systems
         """
@@ -167,7 +156,7 @@ class CameraCoordinateTransformation:
             heading += 2 * math.pi
 
         # compute the difference between our global reference, and what our sensor is reading for heading
-        heading_offset = heading_ref - (math.degrees(heading))
+        heading_offset = resync_data["heading"] - (math.degrees(heading))
         logger.debug(f"TRACKCAM: Resync: Heading Offset:{heading_offset}")
 
         # build a rotation matrix about the global Z axis to apply the heading offset we computed
@@ -183,7 +172,11 @@ class CameraCoordinateTransformation:
         eul = t3d.euler.mat2euler(R, axes="rxyz")
 
         # Find the position offset
-        pos_offset = [pos_ref["n"] - T[0], pos_ref["e"] - T[1], pos_ref["d"] - T[2]]
+        pos_offset = [
+            resync_data["n"] - T[0],
+            resync_data["e"] - T[1],
+            resync_data["d"] - T[2],
+        ]
         logger.debug(f"TRACKCAM: Resync: Pos offset:{pos_offset}")
 
         # build a translation matrix that corrects the difference between where the sensor thinks we are and were our reference thinks we are

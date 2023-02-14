@@ -1,4 +1,4 @@
-from typing import Optional, Tuple, TypedDict
+from typing import Optional
 
 # Getting pyzed installed in a dev environment is very painful unless
 # you already have CUDA and the ZED SDK installed.
@@ -7,18 +7,7 @@ from bell.avr.utils.decorators import try_except
 from loguru import logger
 
 
-class ZedPipeDataTranslation(TypedDict):
-    x: float
-    y: float
-    z: float
-
-
-class ZedPipeData(TypedDict):
-    rotation: Tuple[float, float, float, float]  # quaternion
-    translation: Tuple[float, float, float]
-    velocity: Tuple[float, float, float]
-    tracker_confidence: float
-
+from models import CameraFrameData
 
 # Largely adapted from this
 # https://github.com/stereolabs/zed-examples/blob/master/tutorials/tutorial%204%20-%20positional%20tracking/python/positional_tracking.py
@@ -79,7 +68,7 @@ class ZEDCamera:
         self.last_time = 0
 
     @try_except(reraise=True)
-    def get_pipe_data(self) -> Optional[ZedPipeData]:
+    def get_pipe_data(self) -> Optional[CameraFrameData]:
         if self.zed.grab(self.runtime_parameters) != sl.ERROR_CODE.SUCCESS:
             logger.warning("ZED Camera Grab Failed")
             return
@@ -126,7 +115,7 @@ class ZEDCamera:
         # assemble return value
         translation = (tx, ty, tz)
 
-        return ZedPipeData(
+        return CameraFrameData(
             rotation=rotation,
             translation=translation,
             velocity=velocity,
