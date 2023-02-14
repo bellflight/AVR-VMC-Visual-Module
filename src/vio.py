@@ -23,8 +23,8 @@ class VIOModule(MQTTModule):
     def __init__(self):
         super().__init__()
 
+        # record if sync has happend once
         self.init_sync = False
-        self.continuous_sync = True
 
         # connected libraries
         self.camera = ZEDCamera()
@@ -36,7 +36,7 @@ class VIOModule(MQTTModule):
     def handle_resync(self, payload: AvrVioResyncPayload) -> None:
         # whenever new data is published to the ZEDCamera resync topic, we need to compute a new correction
         # to compensate for sensor drift over time.
-        if not self.init_sync or self.continuous_sync:
+        if not self.init_sync or config.CONTINUOUS_SYNC:
             self.coord_trans.sync(payload)
             self.init_sync = True
 
@@ -49,7 +49,7 @@ class VIOModule(MQTTModule):
         tracker_confidence: float,
     ) -> None:
         if np.isnan(ned_pos).any():
-            raise ValueError("ZEDCamera has NaNs for position")
+            raise ValueError("Camera has NaNs for position")
 
         # send position update
         n = float(ned_pos[0])

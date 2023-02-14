@@ -20,3 +20,8 @@ CAM_GROUND_HEIGHT = 10
 """
 Centimeters above the ground.
 """
+
+CONTINUOUS_SYNC = True
+"""
+Enable continous resyncing.
+"""

@@ -37,17 +37,8 @@ def config(mocker: MockerFixture) -> None:
 
 
 @pytest.fixture
-def vio_module(config: None, mocker: MockerFixture) -> VIOModule:
-    # patch the run_forever decorator
-    mocker.patch("bell.avr.utils.decorators.run_forever", dont_run_forever)
-
-    # patch the send message function
-    mocker.patch("src.vio.VIOModule.send_message")
-
-    # create module object
-    from src.vio import VIOModule
-
-    return VIOModule()
+def config_continuous_sync_off(config: None, mocker: MockerFixture) -> None:
+    mocker.patch("config.CONTINUOUS_SYNC", False)
 
 
 @pytest.fixture
@@ -81,3 +72,17 @@ def zed_camera(mocker: MockerFixture) -> ZEDCamera:
     zed_camera.setup()
 
     return zed_camera
+
+
+@pytest.fixture
+def vio_module(config: None, zed_camera: None, mocker: MockerFixture) -> VIOModule:
+    # patch the run_forever decorator
+    mocker.patch("bell.avr.utils.decorators.run_forever", dont_run_forever)
+
+    # patch the send message function
+    mocker.patch("src.vio.VIOModule.send_message")
+
+    # create module object
+    from src.vio import VIOModule
+
+    return VIOModule()
