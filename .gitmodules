@@ -1,0 +1,3 @@
+[submodule "typings/transforms3d"]
+	path = typings/transforms3d
+	url = https://github.com/bellflight/transforms3d-typings

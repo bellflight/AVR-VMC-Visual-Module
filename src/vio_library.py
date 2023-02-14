@@ -27,14 +27,14 @@ class CameraCoordinateTransformation:
         cam_rpy = config.CAM_ATTITUDE
 
         H_aeroBody_TRACKCAMBody = t3d.affines.compose(
-            config.CAM_POS,
+            np.asarray(config.CAM_POS),
             t3d.euler.euler2mat(
                 cam_rpy[0],
                 cam_rpy[1],
                 cam_rpy[2],
                 axes="rxyz",
             ),
-            [1, 1, 1],
+            np.asarray((1, 1, 1)),
         )
         self.tm["H_aeroBody_TRACKCAMBody"] = H_aeroBody_TRACKCAMBody
         self.tm["H_TRACKCAMBody_aeroBody"] = np.linalg.inv(H_aeroBody_TRACKCAMBody)
@@ -43,14 +43,14 @@ class CameraCoordinateTransformation:
         pos[2] = -1 * config.CAM_GROUND_HEIGHT
 
         H_aeroRef_TRACKCAMRef = t3d.affines.compose(
-            pos,
+            np.asarray(pos),
             t3d.euler.euler2mat(
                 cam_rpy[0],
                 cam_rpy[1],
                 cam_rpy[2],
                 axes="rxyz",
             ),
-            [1, 1, 1],
+            np.asarray((1, 1, 1)),
         )
         self.tm["H_aeroRef_TRACKCAMRef"] = H_aeroRef_TRACKCAMRef
 
@@ -58,7 +58,9 @@ class CameraCoordinateTransformation:
         self.tm["H_aeroRefSync_aeroRef"] = H_aeroRefSync_aeroRef
 
         H_nwu_aeroRef = t3d.affines.compose(
-            [0, 0, 0], t3d.euler.euler2mat(math.pi, 0, 0), [1, 1, 1]
+            np.asarray((0, 0, 0)),
+            t3d.euler.euler2mat(math.pi, 0, 0),
+            np.asarray((1, 1, 1)),
         )
         self.tm["H_nwu_aeroRef"] = H_nwu_aeroRef
 
@@ -108,7 +110,9 @@ class CameraCoordinateTransformation:
         )  # cm/s
 
         H_TRACKCAMRef_TRACKCAMBody = t3d.affines.compose(
-            position, t3d.quaternions.quat2mat(quaternion), [1, 1, 1]
+            np.asarray(position),
+            t3d.quaternions.quat2mat(quaternion),
+            np.asarray((1, 1, 1)),
         )
 
         self.tm["H_TRACKCAMRef_TRACKCAMBody"] = H_TRACKCAMRef_TRACKCAMBody
@@ -161,9 +165,9 @@ class CameraCoordinateTransformation:
 
         # build a rotation matrix about the global Z axis to apply the heading offset we computed
         H_rot_correction = t3d.affines.compose(
-            [0, 0, 0],
-            t3d.axangles.axangle2mat([0, 0, 1], math.radians(heading_offset)),
-            [1, 1, 1],
+            np.asarray((0, 0, 0)),
+            t3d.axangles.axangle2mat((0, 0, 1), math.radians(heading_offset)),
+            np.asarray((1, 1, 1)),
         )
 
         # apply the heading correction to the position data the TRACKCAM is providing
@@ -181,6 +185,6 @@ class CameraCoordinateTransformation:
 
         # build a translation matrix that corrects the difference between where the sensor thinks we are and were our reference thinks we are
         H_aeroRefSync_aeroRef = t3d.affines.compose(
-            pos_offset, H_rot_correction[:3, :3], [1, 1, 1]
+            np.asarray(pos_offset), H_rot_correction[:3, :3], np.asarray((1, 1, 1))
         )
         self.tm["H_aeroRefSync_aeroRef"] = H_aeroRefSync_aeroRef
