@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 from bell.avr.mqtt.payloads import (
-    AvrVioHeadingPayload,
-    AvrVioOrientationEulPayload,
-    AvrVioPositionNedPayload,
-    AvrVioResyncPayload,
-    AvrVioVelocityNedPayload,
-    AvrVioConfidencePayload,
+    AVRVIOAttitudeEulerRadians,
+    AVRVIOConfidence,
+    AVRVIOHeading,
+    AVRVIOPositionLocal,
+    AVRVIOResync,
+    AVRVIOVelocity,
 )
 from typing import TYPE_CHECKING, Tuple
 import pytest
@@ -21,8 +21,8 @@ def test_handle_resync_continuous_off(
 ) -> None:
     mocker.patch.object(vio_module.coord_trans, "sync")
 
-    vio_module.handle_resync(AvrVioResyncPayload(n=0, e=0, d=0, heading=0))
-    vio_module.handle_resync(AvrVioResyncPayload(n=0, e=0, d=0, heading=0))
+    vio_module.handle_resync(AVRVIOResync(n=0, e=0, d=0, hdg=0))
+    vio_module.handle_resync(AVRVIOResync(n=0, e=0, d=0, hdg=0))
     vio_module.coord_trans.sync.assert_called_once()
 
 
@@ -31,8 +31,8 @@ def test_handle_resync_continuous_on(
 ) -> None:
     mocker.patch.object(vio_module.coord_trans, "sync")
 
-    vio_module.handle_resync(AvrVioResyncPayload(n=0, e=0, d=0, heading=0))
-    vio_module.handle_resync(AvrVioResyncPayload(n=0, e=0, d=0, heading=0))
+    vio_module.handle_resync(AVRVIOResync(n=0, e=0, d=0, hdg=0))
+    vio_module.handle_resync(AVRVIOResync(n=0, e=0, d=0, hdg=0))
     assert vio_module.coord_trans.sync.call_count == 2
 
 
@@ -44,18 +44,18 @@ def test_handle_resync_continuous_on(
         (
             (1, 2, 3),
             (4, 5, 6),
-            (7, 8, 9),
+            (1, 2, 3),
             1.0,
-            AvrVioPositionNedPayload(n=1.0, e=2.0, d=3.0),
-            AvrVioOrientationEulPayload(psi=7.0, theta=8.0, phi=9.0),
-            AvrVioHeadingPayload(degrees=515.662015617741),
-            AvrVioVelocityNedPayload(n=4, e=5, d=6),
-            AvrVioConfidencePayload(tracker=1.0),
+            AVRVIOPositionLocal(n=1.0, e=2.0, d=3.0),
+            AVRVIOAttitudeEulerRadians(psi=1.0, theta=2.0, phi=3.0),
+            AVRVIOHeading(hdg=171.88733853924697),
+            AVRVIOVelocity(Vn=4, Ve=5, Vd=6),
+            AVRVIOConfidence(tracking=1.0),
         ),
         (
             (float("nan"), 2, 3),
             (4, 5, 6),
-            (7, 8, 9),
+            (1, 2, 3),
             1.0,
             None,
             None,
@@ -66,20 +66,20 @@ def test_handle_resync_continuous_on(
         (
             (1, 2, 3),
             (4, float("nan"), 6),
-            (7, 8, 9),
+            (1, 2, 3),
             1.0,
-            AvrVioPositionNedPayload(n=1.0, e=2.0, d=3.0),
-            AvrVioOrientationEulPayload(psi=7.0, theta=8.0, phi=9.0),
-            AvrVioHeadingPayload(degrees=515.662015617741),
+            AVRVIOPositionLocal(n=1.0, e=2.0, d=3.0),
+            AVRVIOAttitudeEulerRadians(psi=1.0, theta=2.0, phi=3.0),
+            AVRVIOHeading(hdg=171.88733853924697),
             None,
             None,
         ),
         (
             (1, 2, 3),
             (4, 5, 6),
-            (7, 8, float("nan")),
+            (1, 2, float("nan")),
             1.0,
-            AvrVioPositionNedPayload(n=1.0, e=2.0, d=3.0),
+            AVRVIOPositionLocal(n=1.0, e=2.0, d=3.0),
             None,
             None,
             None,
@@ -93,22 +93,22 @@ def test_publish_update(
     ned_vel: Tuple[float, float, float],
     rpy: Tuple[float, float, float],
     tracker_confidence: float,
-    expected_ned_update: AvrVioPositionNedPayload,
-    expected_eul_update: AvrVioOrientationEulPayload,
-    expected_heading_update: AvrVioHeadingPayload,
-    expected_vel_update: AvrVioVelocityNedPayload,
-    expected_confidence_update: AvrVioConfidencePayload,
+    expected_ned_update: AVRVIOPositionLocal,
+    expected_eul_update: AVRVIOAttitudeEulerRadians,
+    expected_heading_update: AVRVIOHeading,
+    expected_vel_update: AVRVIOVelocity,
+    expected_confidence_update: AVRVIOConfidence,
 ) -> None:
     vio_module.publish_updates(ned_pos, ned_vel, rpy, tracker_confidence)
 
     if expected_ned_update is not None:
         vio_module.send_message.assert_any_call(
-            "avr/vio/position/ned", expected_ned_update
+            "avr/vio/position/local", expected_ned_update
         )
 
     if expected_eul_update is not None:
         vio_module.send_message.assert_any_call(
-            "avr/vio/orientation/eul", expected_eul_update
+            "avr/vio/attitude/euler/radians", expected_eul_update
         )
 
     if expected_heading_update is not None:
@@ -117,9 +117,7 @@ def test_publish_update(
         )
 
     if expected_vel_update is not None:
-        vio_module.send_message.assert_any_call(
-            "avr/vio/velocity/ned", expected_vel_update
-        )
+        vio_module.send_message.assert_any_call("avr/vio/velocity", expected_vel_update)
 
     if expected_confidence_update is not None:
         vio_module.send_message.assert_any_call(

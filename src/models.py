@@ -6,10 +6,3 @@ class CameraFrameData(TypedDict):
     translation: Tuple[float, float, float]
     velocity: Tuple[float, float, float]
     tracker_confidence: float
-
-
-class ResyncData(TypedDict):
-    n: float
-    e: float
-    d: float
-    heading: float  # radians

@@ -4,11 +4,12 @@ from typing import Dict, Tuple
 import numpy as np
 import transforms3d as t3d
 from bell.avr.utils.decorators import try_except
+from bell.avr.mqtt.payloads import AVRVIOResync
 from loguru import logger
 from nptyping import Float, NDArray, Shape
 
 import config
-from models import ResyncData, CameraFrameData
+from models import CameraFrameData
 
 
 class CameraCoordinateTransformation:
@@ -140,7 +141,7 @@ class CameraCoordinateTransformation:
         return T, vel, eul
 
     @try_except()
-    def sync(self, resync_data: ResyncData) -> None:
+    def sync(self, resync_data: AVRVIOResync) -> None:
         """
         Computes offsets between TRACKCAMera ref and "global" frames, to align coord. systems
         """
@@ -160,7 +161,7 @@ class CameraCoordinateTransformation:
             heading += 2 * math.pi
 
         # compute the difference between our global reference, and what our sensor is reading for heading
-        heading_offset = resync_data["heading"] - (math.degrees(heading))
+        heading_offset = resync_data.hdg - (math.degrees(heading))
         logger.debug(f"TRACKCAM: Resync: Heading Offset:{heading_offset}")
 
         # build a rotation matrix about the global Z axis to apply the heading offset we computed
@@ -177,9 +178,9 @@ class CameraCoordinateTransformation:
 
         # Find the position offset
         pos_offset = [
-            resync_data["n"] - T[0],
-            resync_data["e"] - T[1],
-            resync_data["d"] - T[2],
+            resync_data.n - T[0],
+            resync_data.e - T[1],
+            resync_data.d - T[2],
         ]
         logger.debug(f"TRACKCAM: Resync: Pos offset:{pos_offset}")
 
