@@ -3,7 +3,7 @@ from typing import Tuple
 
 import config
 import numpy as np
-from bell.avr.mqtt.client import MQTTModule
+from bell.avr.mqtt.module import MQTTModule
 from bell.avr.mqtt.payloads import (
     AVRVIOAttitudeEulerRadians,
     AVRVIOConfidence,
@@ -30,7 +30,7 @@ class VIOModule(MQTTModule):
         self.coord_trans = CameraCoordinateTransformation()
 
         # mqtt
-        self.topic_map = {"avr/vio/resync": self.handle_resync}
+        self.topic_callbacks = {"avr/vio/resync": self.handle_resync}
 
     def handle_resync(self, payload: AVRVIOResync) -> None:
         # whenever new data is published to the ZEDCamera resync topic, we need to compute a new correction
