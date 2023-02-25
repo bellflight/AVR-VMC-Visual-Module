@@ -2,27 +2,16 @@ from __future__ import annotations
 
 import math
 import sys
-from functools import wraps
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING
 
 import pytest
+from bell.avr.utils.testing import dont_run_forever
 from pytest_mock.plugin import MockerFixture
 
 if TYPE_CHECKING:
     from src.vio import VIOModule
-    from src.zed_library import ZEDCamera
     from src.vio_library import CameraCoordinateTransformation
-
-
-def dont_run_forever(*args, **kwargs) -> Callable:
-    def decorator(f: Callable) -> Callable:
-        @wraps(f)
-        def wrapper(*args, **kwargs) -> Any:
-            return f(*args, **kwargs)
-
-        return wrapper
-
-    return decorator
+    from src.zed_library import ZEDCamera
 
 
 @pytest.fixture

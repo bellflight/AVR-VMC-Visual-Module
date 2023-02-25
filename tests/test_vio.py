@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, Tuple
+
+import pytest
 from bell.avr.mqtt.payloads import (
     AVRVIOAttitudeEulerRadians,
     AVRVIOConfidence,
@@ -8,8 +11,6 @@ from bell.avr.mqtt.payloads import (
     AVRVIOResync,
     AVRVIOVelocity,
 )
-from typing import TYPE_CHECKING, Tuple
-import pytest
 from pytest_mock.plugin import MockerFixture
 
 if TYPE_CHECKING:

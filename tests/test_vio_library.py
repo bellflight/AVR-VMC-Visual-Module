@@ -4,9 +4,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 import pytest
-from bell.avr.mqtt.payloads import (
-    AVRVIOResync,
-)
+from bell.avr.mqtt.payloads import AVRVIOResync
 
 from src.models import CameraFrameData
 

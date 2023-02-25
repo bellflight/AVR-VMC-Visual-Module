@@ -1,13 +1,11 @@
-from typing import Optional
 import sys
+from typing import Optional
 
 # Getting pyzed installed in a dev environment is very painful unless
 # you already have CUDA and the ZED SDK installed.
 import pyzed.sl as sl  # type: ignore
 from bell.avr.utils.decorators import try_except
 from loguru import logger
-
-
 from models import CameraFrameData
 
 
