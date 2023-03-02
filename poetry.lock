@@ -236,14 +236,14 @@ setuptools = "*"
 
 [[package]]
 name = "nptyping"
-version = "2.4.1"
+version = "2.5.0"
 description = "Type hints for NumPy."
 category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "nptyping-2.4.1-py3-none-any.whl", hash = "sha256:23e8164b1e2c55e872f392ca7516b9b1b0cb400b03b70accaa63998b4106b0b3"},
-    {file = "nptyping-2.4.1.tar.gz", hash = "sha256:57ba684ee5fc5eb681ee04270ee94adb879e4372ce6b640defa08ace8e1df295"},
+    {file = "nptyping-2.5.0-py3-none-any.whl", hash = "sha256:764e51836faae33a7ae2e928af574cfb701355647accadcc89f2ad793630b7c8"},
+    {file = "nptyping-2.5.0.tar.gz", hash = "sha256:e3d35b53af967e6fb407c3016ff9abae954d3a0568f7cc13a461084224e8e20a"},
 ]
 
 [package.dependencies]
@@ -574,4 +574,4 @@ dev = ["black (>=19.3b0)", "pytest (>=4.6.2)"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.12"
-content-hash = "10775a6853fc619b08352fff750ee204c20ac830b8a5d5226b164d8375355fd2"
+content-hash = "b443d8415bbe4b210c0f26d8c63be235c715fd1897c259d035c784e932faa31b"
