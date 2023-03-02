@@ -12,7 +12,7 @@
     loguru             = "^0.6.0"
     bell-avr-libraries = { extras = ["mqtt"], version = "^0.1.12" }
     transforms3d       = "0.4.1"
-    numpy              = "1.24.1"
+    numpy              = "1.24.2"
     nptyping           = "^2.5.0"
 
 [tool.poetry.group.dev.dependencies]
