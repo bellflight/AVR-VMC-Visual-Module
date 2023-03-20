@@ -1,39 +1,32 @@
-from typing import Optional, Tuple, TypedDict
+import sys
+from typing import Optional
 
 # Getting pyzed installed in a dev environment is very painful unless
 # you already have CUDA and the ZED SDK installed.
 import pyzed.sl as sl  # type: ignore
 from bell.avr.utils.decorators import try_except
 from loguru import logger
-
-
-class ZedPipeDataTranslation(TypedDict):
-    x: float
-    y: float
-    z: float
-
-
-class ZedPipeData(TypedDict):
-    rotation: Tuple[float, float, float, float]  # quaternion
-    translation: ZedPipeDataTranslation
-    velocity: Tuple[float, float, float]
-    tracker_confidence: float
+from models import CameraFrameData
 
 
 # Largely adapted from this
 # https://github.com/stereolabs/zed-examples/blob/master/tutorials/tutorial%204%20-%20positional%20tracking/python/positional_tracking.py
-class ZEDCamera(object):
+class ZEDCamera:
     """
     ZED Tracking Camera interface.
     Manages pulling data off of the camera for use by the transforms to
     get it in the correct reference frame.
     """
 
-    @try_except(reraise=True)
-    def setup(self) -> None:
+    def __init__(self) -> None:
+        self.last_time = 0
+        self.last_pos = (0, 0, 0)
+
         # Create a Camera object
         self.zed = sl.Camera()
 
+    @try_except(reraise=True)
+    def setup(self) -> None:
         # Create a InitParameters object and set configuration parameters
         init_params = sl.InitParameters()
         init_params.camera_resolution = (
@@ -44,13 +37,13 @@ class ZEDCamera(object):
         init_params.coordinate_units = sl.UNIT.METER  # Set units in meters
 
         # Open the camera
-        logger.debug("Zed Camera Loading...")
-        err = self.zed.open(init_params)
+        logger.debug("ZED Camera Loading...")
 
-        if err != sl.ERROR_CODE.SUCCESS:
-            logger.debug("Zed Camera Loadng (FAILED!!!)")
-            exit(1)
-        logger.success("Zed Camera Loaded")
+        if self.zed.open(init_params) != sl.ERROR_CODE.SUCCESS:
+            logger.error("ZED Camera Loadng (FAILED!!!)")
+            sys.exit(1)
+
+        logger.success("ZED Camera Loaded")
 
         # Enable positional tracking with default parameters
         py_transform = (
@@ -60,11 +53,14 @@ class ZEDCamera(object):
             _init_pos=py_transform
         )
         self.tracking_parameters.set_floor_as_origin = True
-        err = self.zed.enable_positional_tracking(self.tracking_parameters)
-        if err != sl.ERROR_CODE.SUCCESS:
+
+        if (
+            self.zed.enable_positional_tracking(self.tracking_parameters)
+            != sl.ERROR_CODE.SUCCESS
+        ):
             exit(1)
 
-        logger.debug("Zed Camera Enabled positional tracking")
+        logger.debug("ZED Camera Enabled positional tracking")
 
         # create class attributes to hold the camera data
         # i'm not really sure, Zed API is super weird
@@ -73,13 +69,11 @@ class ZEDCamera(object):
 
         self.zed.get_position(self.zed_pose, sl.REFERENCE_FRAME.WORLD)
         self.zed.get_sensors_data(self.zed_sensors, sl.TIME_REFERENCE.IMAGE)
-        self.last_pos = [0, 0, 0]
 
         self.runtime_parameters = sl.RuntimeParameters()
-        self.last_time = 0
 
     @try_except(reraise=True)
-    def get_pipe_data(self) -> Optional[ZedPipeData]:
+    def get_pipe_data(self) -> Optional[CameraFrameData]:
         if self.zed.grab(self.runtime_parameters) != sl.ERROR_CODE.SUCCESS:
             logger.warning("ZED Camera Grab Failed")
             return
@@ -105,14 +99,12 @@ class ZEDCamera(object):
 
         velocity = (diffx / time_diff, diffy / time_diff, diffz / time_diff)
         self.last_time = current_time
-        self.last_pos[0] = tx
-        self.last_pos[1] = ty
-        self.last_pos[2] = tz
+        self.last_pos = (tx, ty, tz)
 
         # get orientation
         py_orientation = sl.Orientation()
         orotation = self.zed_pose.get_orientation(py_orientation)
-        # fix backwards y
+
         o = sl.Orientation()
         # fixing y rotation problem -- need to investigate
         o.init_vector(
@@ -124,9 +116,9 @@ class ZEDCamera(object):
         rotation = o.get()
 
         # assemble return value
-        translation = ZedPipeDataTranslation(x=tx, y=ty, z=tz)
+        translation = (tx, ty, tz)
 
-        return ZedPipeData(
+        return CameraFrameData(
             rotation=rotation,
             translation=translation,
             velocity=velocity,
