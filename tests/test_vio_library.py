@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from src.models import ResyncData, CameraFrameData
-
 import numpy as np
 import pytest
+from bell.avr.mqtt.payloads import AVRVIOResync
+
+from src.models import CameraFrameData
 
 if TYPE_CHECKING:
     from src.vio_library import CameraCoordinateTransformation
@@ -135,13 +136,13 @@ def test_transform_trackcamera_to_global_ned(
     "camera_frame_data, resync_data, expected_H_aeroRefSync_aeroRef",
     [
         (
-            {
-                "rotation": (0, 0, 0, 0),
-                "translation": (0, 0, 0),
-                "velocity": (0, 0, 0),
-                "tracker_confidence": 1.0,
-            },
-            {"n": 0, "e": 0, "d": 0, "heading": 0},
+            CameraFrameData(
+                rotation=(0, 0, 0, 0),
+                translation=(0, 0, 0),
+                velocity=(0, 0, 0),
+                tracker_confidence=1.0,
+            ),
+            AVRVIOResync(n=0, e=0, d=0, hdg=0),
             np.array(
                 [
                     [1, -2.4492936e-16, 0, 0],
@@ -152,13 +153,13 @@ def test_transform_trackcamera_to_global_ned(
             ),
         ),
         (
-            {
-                "rotation": (0.5, 1, 1.5, 2),
-                "translation": (1, 2, 3),
-                "velocity": (4, 5, 6),
-                "tracker_confidence": 1.0,
-            },
-            {"n": 7, "e": 8, "d": 9, "heading": -10},
+            CameraFrameData(
+                rotation=(0.5, 1, 1.5, 2),
+                translation=(1, 2, 3),
+                velocity=(4, 5, 6),
+                tracker_confidence=1.0,
+            ),
+            AVRVIOResync(n=7, e=8, d=9, hdg=-10),
             np.array(
                 [
                     [2.04520132e-01, 9.78862358e-01, 0, -5.93488455e01],
@@ -173,7 +174,7 @@ def test_transform_trackcamera_to_global_ned(
 def test_sync(
     camera_coordinate_transformation: CameraCoordinateTransformation,
     camera_frame_data: CameraFrameData,
-    resync_data: ResyncData,
+    resync_data: AVRVIOResync,
     expected_H_aeroRefSync_aeroRef: np.ndarray,
 ) -> None:
     camera_coordinate_transformation.setup_transforms()

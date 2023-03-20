@@ -1,8 +1,10 @@
 from __future__ import annotations
 
-import pytest
 from typing import TYPE_CHECKING, Tuple
+
+import pytest
 from pytest_mock.plugin import MockerFixture
+
 from src.models import CameraFrameData
 
 if TYPE_CHECKING:
