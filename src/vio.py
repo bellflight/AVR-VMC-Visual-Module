@@ -1,5 +1,5 @@
 import math
-from typing import Tuple
+from typing import Literal, Tuple
 
 import config
 import numpy as np
@@ -8,11 +8,14 @@ from bell.avr.mqtt.payloads import (
     AVRVIOAttitudeEulerRadians,
     AVRVIOConfidence,
     AVRVIOHeading,
+    AVRVIOImageCapture,
+    AVRVIOImageRequest,
     AVRVIOPositionLocal,
     AVRVIOResync,
     AVRVIOVelocity,
 )
 from bell.avr.utils.decorators import run_forever, try_except
+from bell.avr.utils.images import serialize_image
 from loguru import logger
 from vio_library import CameraCoordinateTransformation
 from zed_library import ZEDCamera
@@ -30,7 +33,24 @@ class VIOModule(MQTTModule):
         self.coord_trans = CameraCoordinateTransformation()
 
         # mqtt
-        self.topic_callbacks = {"avr/vio/resync": self.handle_resync}
+        self.topic_callbacks = {
+            "avr/vio/resync": self.handle_resync,
+            "avr/vio/image/request": self.handle_image_request,
+        }
+
+    def handle_image_request(self, payload: AVRVIOImageRequest) -> None:
+        self.send_rgb_image(side=payload.side, compressed=payload.compressed)
+
+    def send_rgb_image(self, side: Literal["left", "right"], compressed: bool) -> None:
+        """
+        Send an RGB image from the tracking camera.
+        """
+
+        image_data = self.camera.get_rgb_image(side)
+        serialized_image_data = serialize_image(image_data, compress=compressed)
+
+        payload = AVRVIOImageCapture(**serialized_image_data, side=side)
+        self.send_message("avr/vio/image/capture", payload)
 
     def handle_resync(self, payload: AVRVIOResync) -> None:
         # whenever new data is published to the ZEDCamera resync topic, we need to compute a new correction
