@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import sys
 from typing import TYPE_CHECKING, Literal, Optional
 
@@ -140,4 +142,5 @@ class ZEDCamera:
         elif side == "right":
             zed_view = sl.VIEW.RIGHT
 
-        return image.get_data(self.zed.retrieve_image(image, zed_view))
+        self.zed.retrieve_image(image, zed_view)
+        return image.get_data()

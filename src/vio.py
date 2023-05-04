@@ -74,12 +74,17 @@ class VIOModule(MQTTModule):
         """
         Send an RGB image from the tracking camera.
         """
+        if self.enable_verbose_logging:
+            logger.debug("Sending RGB image")
 
         image_data = self.camera.get_rgb_image(side)
         serialized_image_data = serialize_image(image_data, compress=compressed)
 
         payload = AVRVIOImageCapture(**serialized_image_data, side=side)
         self.send_message("avr/vio/image/capture", payload)
+
+        if self.enable_verbose_logging:
+            logger.debug("RGB image sent")
 
     def handle_resync(self, payload: AVRVIOResync) -> None:
         # whenever new data is published to the ZEDCamera resync topic, we need to compute a new correction
