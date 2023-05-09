@@ -169,6 +169,9 @@ class VIOModule(MQTTModule):
 
     @run_forever(frequency=100)
     def stream_rgb_images(self) -> None:
+        """
+        Constantly capture and send images from the RGB camera.
+        """
         if self.image_stream_enabled:
             rate_limit(
                 lambda: self.send_rgb_image(
