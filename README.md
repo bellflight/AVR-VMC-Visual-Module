@@ -21,12 +21,14 @@ It's assumed you have a version of Python installed from
 [python.org](https://python.org) that is the same or newer as
 defined in the [`Dockerfile`](Dockerfile).
 
-First, install [Poetry](https://python-poetry.org/):
+First, install [Poetry](https://python-poetry.org/) and
+[VS Code Task Runner](https://pypi.org/project/vscode-task-runner/):
 
 ```bash
 python -m pip install pipx --upgrade
 pipx ensurepath
 pipx install poetry
+pipx install vscode-task-runner
 # (Optionally) Add pre-commit plugin
 poetry self add poetry-pre-commit-plugin
 ```
@@ -36,8 +38,7 @@ Now, you can clone the repo and install dependencies:
 ```bash
 git clone https://github.com/bellflight/AVR-VMC-Visual-Module
 cd AVR-VMC-Visual-Module
-poetry install --sync
-poetry run pre-commit install --install-hooks
+vtr install
 ```
 
 Run
