@@ -1,5 +1,10 @@
+from __future__ import annotations
+
 import sys
-from typing import Optional
+from typing import TYPE_CHECKING, Literal, Optional
+
+if TYPE_CHECKING:
+    import numpy as np
 
 # Getting pyzed installed in a dev environment is very painful unless
 # you already have CUDA and the ZED SDK installed.
@@ -124,3 +129,18 @@ class ZEDCamera:
             velocity=velocity,
             tracker_confidence=self.zed_pose.pose_confidence,
         )
+
+    def get_rgb_image(self, side: Literal["left", "right"]) -> np.ndarray:
+        """
+        Return an RGB image from the camera for the specified side.
+        """
+        image = sl.Mat()
+
+        zed_view = None
+        if side == "left":
+            zed_view = sl.VIEW.LEFT
+        elif side == "right":
+            zed_view = sl.VIEW.RIGHT
+
+        self.zed.retrieve_image(image, zed_view)
+        return image.get_data()
