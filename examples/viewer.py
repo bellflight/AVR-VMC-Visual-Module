@@ -14,13 +14,7 @@ class ViewerModule(MQTTModule):
         self.first = True
 
     def show_image(self, payload: AVRVIOImageCapture) -> None:
-        raw_image_data = deserialize_image(
-            {
-                "data": payload.data,
-                "compressed": payload.compressed,
-                "shape": payload.shape,
-            }
-        )
+        raw_image_data = deserialize_image(payload)
         cv2.imshow(payload.side, raw_image_data)
         cv2.waitKey(1)
 
