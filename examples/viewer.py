@@ -1,4 +1,6 @@
-import cv2
+# pip install opencv-python
+
+import cv2  # pyright: ignore
 from bell.avr.mqtt.module import MQTTModule
 from bell.avr.mqtt.payloads import AVRVIOImageCapture
 from bell.avr.utils.images import deserialize_image

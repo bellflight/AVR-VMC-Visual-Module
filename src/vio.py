@@ -35,7 +35,7 @@ class VIOModule(MQTTModule):
         self.image_stream_enabled: bool = False
         self.image_stream_side: Literal["left", "right"] = "left"
         self.image_stream_compressed: bool = False
-        self.image_stream_frequency: int = 1
+        self.image_stream_frequency: float = 1
 
         # connected libraries
         self.camera = ZEDCamera()
