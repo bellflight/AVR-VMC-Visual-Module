@@ -2,11 +2,12 @@ FROM docker.io/library/python:3.10 AS poetry-exporter
 
 WORKDIR /work
 
+RUN python -m pip install poetry
+
 COPY pyproject.toml pyproject.toml
 COPY poetry.lock poetry.lock
 
-RUN python -m pip install poetry \
- && poetry export -o requirements.txt
+RUN poetry export -o requirements.txt
 
 # adapted from https://github.com/stereolabs/zed-docker/blob/master/3.X/l4t/py-runtime/Dockerfile
 # https://hub.docker.com/r/stereolabs/zed

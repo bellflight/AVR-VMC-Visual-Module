@@ -1,5 +1,6 @@
 import math
-from typing import Tuple
+import threading
+from typing import Literal, Tuple
 
 import config
 import numpy as np
@@ -8,11 +9,16 @@ from bell.avr.mqtt.payloads import (
     AVRVIOAttitudeEulerRadians,
     AVRVIOConfidence,
     AVRVIOHeading,
+    AVRVIOImageCapture,
+    AVRVIOImageRequest,
+    AVRVIOImageStreamEnable,
     AVRVIOPositionLocal,
     AVRVIOResync,
     AVRVIOVelocity,
 )
 from bell.avr.utils.decorators import run_forever, try_except
+from bell.avr.utils.images import serialize_image
+from bell.avr.utils.timing import rate_limit
 from loguru import logger
 from vio_library import CameraCoordinateTransformation
 from zed_library import ZEDCamera
@@ -25,12 +31,60 @@ class VIOModule(MQTTModule):
         # record if sync has happend once
         self.init_sync = False
 
+        # record image streaming state
+        self.image_stream_enabled: bool = False
+        self.image_stream_side: Literal["left", "right"] = "left"
+        self.image_stream_compressed: bool = False
+        self.image_stream_frequency: float = 1
+
         # connected libraries
         self.camera = ZEDCamera()
         self.coord_trans = CameraCoordinateTransformation()
 
         # mqtt
-        self.topic_callbacks = {"avr/vio/resync": self.handle_resync}
+        self.topic_callbacks = {
+            "avr/vio/resync": self.handle_resync,
+            "avr/vio/image/request": self.handle_image_request,
+            "avr/vio/image/stream/enable": self.handle_image_stream_enable,
+            "avr/vio/image/stream/disable": self.handle_image_stream_disable,
+        }
+
+    def handle_image_request(self, payload: AVRVIOImageRequest) -> None:
+        """
+        Handle a single image request
+        """
+        self.send_rgb_image(side=payload.side, compressed=payload.compressed)
+
+    def handle_image_stream_enable(self, payload: AVRVIOImageStreamEnable) -> None:
+        """
+        Handle an image streaming request
+        """
+        self.image_stream_enabled = True
+        self.image_stream_side = payload.side
+        self.image_stream_compressed = payload.compressed
+        self.image_stream_frequency = payload.frequency
+
+    def handle_image_stream_disable(self) -> None:
+        """
+        Disable image streaming
+        """
+        self.image_stream_enabled = False
+
+    def send_rgb_image(self, side: Literal["left", "right"], compressed: bool) -> None:
+        """
+        Send an RGB image from the tracking camera.
+        """
+        if self.enable_verbose_logging:
+            logger.debug("Sending RGB image")
+
+        image_data = self.camera.get_rgb_image(side)
+        serialized_image_data = serialize_image(image_data, compress=compressed)
+
+        payload = AVRVIOImageCapture(**serialized_image_data, side=side)
+        self.send_message("avr/vio/image/capture", payload)
+
+        if self.enable_verbose_logging:
+            logger.debug("RGB image sent")
 
     def handle_resync(self, payload: AVRVIOResync) -> None:
         # whenever new data is published to the ZEDCamera resync topic, we need to compute a new correction
@@ -113,12 +167,29 @@ class VIOModule(MQTTModule):
             data["tracker_confidence"],
         )
 
+    @run_forever(frequency=100)
+    def stream_rgb_images(self) -> None:
+        """
+        Constantly capture and send images from the RGB camera.
+        """
+        if self.image_stream_enabled:
+            rate_limit(
+                lambda: self.send_rgb_image(
+                    self.image_stream_side, self.image_stream_compressed
+                ),
+                frequency=self.image_stream_frequency,
+            )
+
     def run(self) -> None:
         self.run_non_blocking()
 
         # setup the tracking camera
         logger.debug("Setting up camera connection")
         self.camera.setup()
+
+        # start the image stream handler loop
+        stream_thread = threading.Thread(target=self.stream_rgb_images)
+        stream_thread.start()
 
         # begin processing data
         self.process_camera_data()
