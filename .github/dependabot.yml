@@ -5,18 +5,30 @@ updates:
     schedule:
       interval: "monthly"
     target-branch: "develop"
+    groups:
+      github-actions-all:
+        patterns:
+          - "*"
 
   - package-ecosystem: "gitsubmodule"
     directory: "/"
     schedule:
       interval: "monthly"
     target-branch: "develop"
+    groups:
+      gitsubmodule-all:
+        patterns:
+          - "*"
 
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
       interval: "monthly"
     target-branch: "develop"
+    groups:
+      pip-all:
+        patterns:
+          - "*"
 
   # - package-ecosystem: "docker"
   #   directory: "/"
