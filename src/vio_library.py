@@ -92,7 +92,7 @@ class CameraCoordinateTransformation:
             A 3 unit list [roll,math.pitch, yaw]
 
         """
-        quaternion = data["rotation"]
+        quaternion = np.array(data["rotation"])
 
         position = (
             data["translation"][0] * 100,
@@ -166,7 +166,7 @@ class CameraCoordinateTransformation:
         # build a rotation matrix about the global Z axis to apply the heading offset we computed
         H_rot_correction = t3d.affines.compose(
             np.asarray((0, 0, 0)),
-            t3d.axangles.axangle2mat((0, 0, 1), math.radians(heading_offset)),
+            t3d.axangles.axangle2mat(np.array((0, 0, 1)), math.radians(heading_offset)),
             np.asarray((1, 1, 1)),
         )
 

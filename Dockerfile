@@ -30,18 +30,25 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Fix numpy issues
 ENV OPENBLAS_CORETYPE=AARCH64
 
-# Install Python newer than 3.8
-RUN apt-get update -y || true \
- && apt-get install -y ca-certificates software-properties-common && update-ca-certificates
-RUN add-apt-repository ppa:deadsnakes/ppa \
- && apt-get update -y
-RUN apt-get install -y \
-    curl \
-    python3-pip \
-    python${PYTHON_VERSION} \
-    python${PYTHON_VERSION}-dev \
-    python${PYTHON_VERSION}-distutils \
- && curl -sS https://bootstrap.pypa.io/get-pip.py | python${PYTHON_VERSION} \
+# Install Python newer than 3.6
+# https://github.com/deadsnakes/issues/issues/251
+WORKDIR /work/
+RUN apt-get update -y
+RUN apt-get install -y tzdata curl ca-certificates
+RUN curl -L -O https://github.com/bellflight/AVR-Python-arm-deb/releases/download/release/libpython3.10-minimal_3.10.11-1+bionic1_arm64.deb \
+ && curl -L -O https://github.com/bellflight/AVR-Python-arm-deb/releases/download/release/libpython3.10-stdlib_3.10.11-1+bionic1_arm64.deb \
+ && curl -L -O https://github.com/bellflight/AVR-Python-arm-deb/releases/download/release/python3.10-distutils_3.10.11-1+bionic1_all.deb \
+ && curl -L -O https://github.com/bellflight/AVR-Python-arm-deb/releases/download/release/python3.10-lib2to3_3.10.11-1+bionic1_all.deb \
+ && curl -L -O https://github.com/bellflight/AVR-Python-arm-deb/releases/download/release/python3.10-minimal_3.10.11-1+bionic1_arm64.deb \
+ && curl -L -O https://github.com/bellflight/AVR-Python-arm-deb/releases/download/release/python3.10_3.10.11-1+bionic1_arm64.deb
+RUN dpkg -i libpython3.10-minimal_3.10.11-1+bionic1_arm64.deb \
+ && dpkg -i libpython3.10-stdlib_3.10.11-1+bionic1_arm64.deb \
+ && dpkg -i python3.10-lib2to3_3.10.11-1+bionic1_all.deb \
+ && dpkg -i python3.10-distutils_3.10.11-1+bionic1_all.deb \
+ && dpkg -i python3.10-minimal_3.10.11-1+bionic1_arm64.deb \
+ && dpkg -i python3.10_3.10.11-1+bionic1_arm64.deb \
+ && rm *.deb
+RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python${PYTHON_VERSION} \
  && python${PYTHON_VERSION} -m pip install pip wheel setuptools --upgrade
 # I understand this is bad to do, but the ZEDSDK installs a bunch of
 # packages into `python3`, so setting this to our desired version reduces
@@ -57,7 +64,7 @@ RUN apt-get install --no-install-recommends lsb-release wget less udev sudo apt-
  && chmod +x ZED_SDK_Linux.run ; ./ZED_SDK_Linux.run silent runtime_only \
  && rm -rf /usr/local/zed/resources/* \
  && rm -rf ZED_SDK_Linux.run \
- && apt-get remove --purge build-essential python${PYTHON_VERSION}-dev -y \
+ && apt-get remove --purge build-essential -y \
  && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/*
 
