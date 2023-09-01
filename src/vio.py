@@ -161,8 +161,8 @@ class VIOModule(MQTTModule):
         ) = self.coord_trans.transform_trackcamera_to_global_ned(data)
 
         self.publish_updates(
-            tuple(ned_pos),
-            tuple(ned_vel),
+            tuple(ned_pos),  # type: ignore
+            tuple(ned_vel),  # type: ignore
             rpy,
             data["tracker_confidence"],
         )
